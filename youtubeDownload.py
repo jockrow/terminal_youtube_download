@@ -3,31 +3,47 @@ from tqdm import tqdm
 import os
 import requests
 import datetime
+import re
 
-# Function to mark video as downloaded or with error in links.md
+input_file_path = "links.md"
+output_file_path = input_file_path
 
 
-def mark_status(link, status="[OK]", error=None):
-    with open('links.md', 'r') as file:
+def format_file():
+    with open(input_file_path, "r") as infile:
+        file_content = infile.read()
+
+    # Trim the file and remove the spaces
+    modified_content = re.sub(
+        r"(^[ \t]*\n|[ \t]+|\&.*)", "", file_content, flags=re.MULTILINE
+    )
+
+    with open(output_file_path, "w") as outfile:
+        outfile.write(modified_content)
+
+
+def get_num_valid_videos():
+    with open(input_file_path, "r") as infile:
+        total_lines = sum(1 for line in infile)
+        infile.seek(0)
+        content = infile.read()
+    count = len(re.findall(r"^\s*#", content, flags=re.MULTILINE))
+    return total_lines - count
+
+
+def mark_status(link, status="# [OK]", error=None):
+    with open(input_file_path, "r") as file:
         lines = file.readlines()
 
-    with open('links.md', 'w') as file:
+    with open(input_file_path, "w") as file:
         for line in lines:
             if line.strip() == link.strip():
                 if error:
-                    file.write(f"[ERROR:{error}] {link}\n")
+                    file.write(f"# [ERROR:{error}] {link}\n")
                 else:
-                    file.write(f"{status} {line}")
+                    file.write(f"# [{status}] {line}")
             else:
                 file.write(line)
-
-# Function to check if a video already exists
-
-
-def video_exists(link):
-    return os.path.exists(f"{link}.mp4")
-
-# Function to download YouTube videos with progress bar
 
 
 def download_video(link):
@@ -40,15 +56,16 @@ def download_video(link):
 
     try:
         print(f"Downloading: {yt.title} - {link}")
-        stream = yt.streams.filter(
-            progressive=True, file_extension='mp4').order_by('resolution')[-1]
+        stream = yt.streams.filter(progressive=True, file_extension="mp4").order_by(
+            "resolution"
+        )[-1]
 
-        # Get the video size
         video_size = stream.filesize
 
         response = requests.get(stream.url, stream=True)
 
-        with open(f"{yt.title}.mp4", 'wb') as file, tqdm(
+        # progress bar
+        with open(f"{yt.title}.mp4", "wb") as file, tqdm(
             desc=f"{yt.title}",
             total=video_size,
             unit="B",
@@ -67,11 +84,14 @@ def download_video(link):
         mark_status(link, "[ERROR]", str(e))
         return False
 
-# Function to process links from links.md
-
 
 def process_links():
-    with open('links.md', 'r') as link_file:
+    with open(input_file_path, "r") as link_file:
+        format_file()
+
+        total_videos = get_num_valid_videos()
+        print("total_videos:" + str(total_videos))
+
         for line in link_file:
             if line.startswith("#"):
                 continue  # Skip commented lines
@@ -81,7 +101,7 @@ def process_links():
             if not link:
                 continue  # Skip empty lines
 
-            if video_exists(link):
+            if os.path.exists(f"{link}.mp4"):
                 print(f"[EXISTS] {link}")
                 mark_status(link, "[EXISTS]")
             else:
