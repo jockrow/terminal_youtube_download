@@ -1,8 +1,14 @@
 # Description
 
-Download the list of videos that are in the links.md file
+Terminal App that download the list of videos that are in the links.md file
 
-# Example
+# Installation
+
+Clone this respository:
+```sh
+git clone https://github.com/jockrow/terminal_youtube_download.git
+```
+# Instructions
 
 In your links.md file you cand add the list of youtube links:
 ```md
@@ -11,9 +17,7 @@ https://www.youtube.com/watch?v=PT0-Xl-0G_I&pp=ygUFZnVubnk%3D
 https://www.youtube.com/watch?v=VgTHzb1FYxo&pp=ygUFZnVubnk%3D
 ```
 
-# Execute
-
-When you execute the next command all the videos will download at current directory.
+Execute the next command all the videos will download at current directory.
 ```sh
 python youtubeDownload.py
 ```

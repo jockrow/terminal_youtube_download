@@ -31,7 +31,7 @@ def get_num_valid_videos():
     return total_lines - count
 
 
-def mark_status(link, status="# [OK]", error=None):
+def mark_status(link, status="#", error=None):
     with open(input_file_path, "r") as file:
         lines = file.readlines()
 
@@ -41,7 +41,7 @@ def mark_status(link, status="# [OK]", error=None):
                 if error:
                     file.write(f"# [ERROR:{error}] {link}\n")
                 else:
-                    file.write(f"# [{status}] {line}")
+                    file.write(f"{status} {line}")
             else:
                 file.write(line)
 
