@@ -10,7 +10,16 @@ git clone https://github.com/jockrow/terminal_youtube_download.git
 ```
 # Instructions
 
+Go to your folder in your terminal:
+```sh
+cd terminal_youtube_download
+```
+
+Open your favorite Editor. 
+
 In your links.md file you cand add the list of youtube links:
+
+## Example
 ```md
 https://www.youtube.com/watch?v=QQ-gscpDC00&pp=ygUFZnVubnk%3D
 https://www.youtube.com/watch?v=PT0-Xl-0G_I&pp=ygUFZnVubnk%3D
