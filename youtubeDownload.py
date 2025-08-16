@@ -1,4 +1,4 @@
-from pytube import YouTube
+import yt_dlp
 from tqdm import tqdm
 import os
 import requests
@@ -7,6 +7,9 @@ import re
 
 input_file_path = "links.md"
 output_file_path = input_file_path
+format = ("best",)
+
+# TODO: Quitar test.md
 
 
 def format_file():
@@ -32,6 +35,7 @@ def get_num_valid_videos():
 
 
 def mark_status(link, status="#", error=None):
+    print(f"link:{link}, status:{status}, error:{error}")
     with open(input_file_path, "r") as file:
         lines = file.readlines()
 
@@ -47,6 +51,29 @@ def mark_status(link, status="#", error=None):
 
 
 def download_video(link):
+    ydl_opts = {
+        # 'format': 'best',
+        "format": "bestvideo*+bestaudio/best",
+        # 'format': '+size,+br',
+        # 'format': 'bestvideo+bestaudio',  # Best video and audio quality
+        "merge_output_format": "mp4",
+        "outtmpl": "%(title)s.%(ext)s",
+        "default_search": "ytsearch",
+    }
+
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([link])
+
+    except Exception as e:
+        print(f"Error downloading video: {e}")
+        mark_status(link, "# [ERROR]", str(e))
+        return False
+
+    return True
+
+
+def download_videoOld(link):
     try:
         yt = YouTube(link)
     except Exception as e:
@@ -65,13 +92,16 @@ def download_video(link):
         response = requests.get(stream.url, stream=True)
 
         # progress bar
-        with open(f"{yt.title}.mp4", "wb") as file, tqdm(
-            desc=f"{yt.title}",
-            total=video_size,
-            unit="B",
-            unit_scale=True,
-            unit_divisor=1024,
-        ) as bar:
+        with (
+            open(f"{yt.title}.mp4", "wb") as file,
+            tqdm(
+                desc=f"{yt.title}",
+                total=video_size,
+                unit="B",
+                unit_scale=True,
+                unit_divisor=1024,
+            ) as bar,
+        ):
             # Download in chunks
             for chunk in response.iter_content(chunk_size=1024):
                 file.write(chunk)
@@ -101,6 +131,8 @@ def process_links():
             if not link:
                 continue  # Skip empty lines
 
+            print(link)
+
             if os.path.exists(f"{link}.mp4"):
                 print(f"[EXISTS] {link}")
                 mark_status(link, "[EXISTS]")
@@ -109,12 +141,12 @@ def process_links():
                     mark_status(link)
 
 
-# Main script
-start_time = datetime.datetime.now()
-print(f"Script started at: {start_time}")
+if __name__ == "__main__":
+    start_time = datetime.datetime.now()
+    print(f"Script started at: {start_time}")
 
-process_links()
+    process_links()
 
-end_time = datetime.datetime.now()
-print(f"Script completed at: {end_time}")
-print(f"Total time taken: {end_time - start_time}")
+    end_time = datetime.datetime.now()
+    print(f"Script completed at: {end_time}")
+    print(f"Total time taken: {end_time - start_time}")
